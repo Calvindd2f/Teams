@@ -14,11 +14,8 @@ function Install-Teams
          :   https://teams.microsoft.com/downloads/desktopurl?env=production&plat=windows&arch=x64&managedInstaller=true&download=true
          #>
      }
-
-    
-
-
-    [CmdletBinding()] Param(
+     
+     [CmdletBinding()] Param(
 
         [Parameter(Position = 0, Mandatory = $False)]
         [Switch]
@@ -64,3 +61,4 @@ function Install-Teams
         $proc64 = msiexec /i $file OPTIONS="noAutoStart=true" ALLUSERS=1
         $proc64.WaitForExit()
     }
+}
