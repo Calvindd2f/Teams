@@ -85,4 +85,50 @@ function Install-Teams
         $proc64 = msiexec /i $file OPTIONS="noAutoStart=true" ALLUSERS=1
         $proc64.WaitForExit()
     }
+
+    
+    
+    Write-Output "Install Complete ; continuing for other optimizations"
+
+    
+
+    # Exclude Teams from antivirus or DLP applications.
+    {
+        Add-MpPreference -ExclusionPath {
+            "C:\Users\*\AppData\Local\Microsoft\Teams\current\teams.exe"
+            "C:\Users\*\AppData\Local\Microsoft\Teams\update.exe"
+            "C:\Users\*\AppData\Local\Microsoft\Teams\current\squirrel.exe"
+        }
+    }
+
+    
+
+    # Disable Xbox Game Bar
+    {
+        write-host "Removing Gamebar"
+        {
+            Get-AppxPackage Microsoft.XboxGamingOverlay | Remove-AppxPackage
+        }
+    }
+
+    
+
+
+    # Creates firewall rules for Teams.
+    {
+        $users = Get-ChildItem (Join-Path -Path $env:SystemDrive -ChildPath 'Users') -Exclude 'Public', 'ADMINI~*'
+        if ($null -ne $users) {
+            foreach ($user in $users) {
+                 $progPath = Join-Path -Path $user.FullName -ChildPath "AppData\Local\Microsoft\Teams\Current\Teams.exe"
+                 if (Test-Path $progPath) {
+                     if (-not (Get-NetFirewallApplicationFilter -Program $progPath -ErrorAction SilentlyContinue)) {
+                        $ruleName = "Teams.exe for user $($user.Name)"
+                        "UDP", "TCP" | ForEach-Object { New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -Profile Domain -Program $progPath -Action Allow -Protocol $_ }
+                        Clear-Variable ruleName
+                    }
+                }
+                Clear-Variable progPath
+            }
+        }
+    }
 }
