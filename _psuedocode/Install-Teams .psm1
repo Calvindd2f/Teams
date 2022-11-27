@@ -30,6 +30,28 @@ function Install-Teams
     $URL64="https://teams.microsoft.com/downloads/desktopurl?env=production&plat=windows&arch=x64&managedInstaller=true&download=true"
     $T32 = "Teams_windows_x86"
     $T64 = "Teams_windows_x64"
+    $WV2 = 'https://go.microsoft.com/fwlink/p/?LinkId=2124703'
+    $WebView2 = "setup.exe"
+
+
+    "Install WebView2 Driver for Teams ; it no longer uses electron."
+    {
+        IWR $WV2 -OutFile $env:TEMP\setup.exe -Wait {
+            if ([System.IO.File]::Exists($env:TEMP\$WebView2)) {
+                Write-Host "Installing Microsoft Edge WebView2"
+                $WebView2 = Start-Process $env:TEMP\$WebView2 "-uninstall -s" -PassThru
+                $WebView2.WaitForExit()
+            }
+            Write-Host "Success: Microsoft Edge WebView2 Installed"
+            Remove-Item $env:TEMP\setup.exe
+        }
+        catch [Exception]
+        {
+            Write-Output "Uninstall failed with exception $_.exception.message"
+            exit /b 1
+        }
+    }
+
 
 
     "Download"
@@ -48,6 +70,8 @@ function Install-Teams
             $webclient.DownloadFile($URL64,"$file")
         }
     }
+
+
     "Install"
     if ($file -match $T32
     { 
